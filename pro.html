@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>SP01 Pro Editor</title>
+<meta name="theme-color" content="#0d0a26">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.png">
+<style>
+:root{--bg:#0d0a26;--bg2:#17113f;--card:rgba(255,255,255,.07);--line:rgba(232,190,92,.22);--gold:#e8be5c;--gold2:#ffe08c;--text:#f4f1ff;--muted:#a9a1cf;--sel:#ffd257;--r:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Devanagari",sans-serif;-webkit-tap-highlight-color:transparent;overflow:hidden;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.hidden{display:none!important}
+#app{height:100%;display:flex;flex-direction:column;max-width:1100px;margin:0 auto;background:linear-gradient(180deg,#140e38,var(--bg) 40%)}
+header{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);flex:none}
+header b{flex:1;color:var(--gold2);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:19px;background:var(--card)}
+.ib:disabled{opacity:.35}
+.pill{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 11px;font-size:13px}
+.gold{background:linear-gradient(135deg,var(--gold2),var(--gold) 60%,#c9962e);color:#24104f;font-weight:800;border:0;border-radius:999px;padding:9px 15px;font-size:14px}
+#pv{flex:1;min-height:150px;position:relative;display:grid;place-items:center;background:#07051a;overflow:hidden}
+#stageWrap{position:relative;line-height:0;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+#stage{display:block;touch-action:none}
+#selBox{position:absolute;border:2px solid var(--sel);border-radius:4px;pointer-events:none;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+#selBox::after{content:"";position:absolute;right:-7px;bottom:-7px;width:12px;height:12px;border-radius:50%;background:var(--sel)}
+#empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center;color:var(--muted);font-size:14px}
+#empty button{font-size:16px}
+#pickHint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);padding:6px 12px;border-radius:999px;font-size:13px;color:var(--gold2);line-height:1.3}
+#transport{display:flex;align-items:center;gap:8px;padding:6px 10px;flex:none;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+#transport .sp{flex:1}
+#playBtn{width:44px;height:44px;border-radius:50%;background:var(--gold);color:#24104f;font-size:18px;display:grid;place-items:center;margin:0 auto}
+#tl{position:relative;flex:none;height:206px;border-top:1px solid var(--line);background:#0a0820}
+#tlScroll{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+#tlScroll::-webkit-scrollbar{display:none}
+#tlInner{position:relative;height:100%}
+#playhead{position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:#fff;pointer-events:none;box-shadow:0 0 6px #000;z-index:6}
+#playhead::before{content:"";position:absolute;top:0;left:-5px;border:6px solid transparent;border-top-color:#fff}
+.row{position:absolute;left:0;right:0}
+.ruler{top:0;height:18px;font-size:10px;color:var(--muted)}
+.tick{position:absolute;top:0;height:18px;border-left:1px solid rgba(255,255,255,.18);padding-left:3px;line-height:18px}
+.it{position:absolute;top:0;bottom:0;border-radius:7px;overflow:hidden;font-size:11px;line-height:1.2;padding:3px 6px;white-space:nowrap;text-overflow:ellipsis;border:1px solid rgba(255,255,255,.12)}
+.it.sel{border:2px solid var(--sel);z-index:3;touch-action:none}
+.it .h{position:absolute;top:0;bottom:0;width:16px;background:var(--sel);display:none;touch-action:none;z-index:2}
+.it.sel .h{display:block}.it .h.l{left:0;border-radius:5px 0 0 5px}.it .h.r{right:0;border-radius:0 5px 5px 0}
+.it .h::after{content:"";position:absolute;top:30%;bottom:30%;left:6px;width:3px;border-radius:2px;background:#5a3b00}
+.main{top:24px;height:54px}.main .it{background:#2b2160;padding:0}
+.main .thumbs{position:absolute;inset:0;display:flex}.main .thumbs span{flex:1;background-size:cover;background-position:center;min-width:0}
+.main .it .lb{position:absolute;left:4px;bottom:2px;font-size:10px;background:rgba(0,0,0,.6);padding:1px 4px;border-radius:4px}
+.trBtn{position:absolute;top:39px;width:22px;height:22px;margin-left:-11px;border-radius:6px;background:#fff;color:#24104f;font-size:12px;display:grid;place-items:center;z-index:4;box-shadow:0 1px 4px #000}
+.trBtn.on{background:var(--gold)}
+.ovr{top:84px;height:28px}.ovr .it{background:#1f6f62}
+.txt{top:116px;height:24px}.txt .it{background:#8b4bd1}
+.fxr{top:144px;height:20px}.fxr .it{background:#b5406e;font-size:10px;padding:2px 6px}
+.aud{top:168px;height:34px}.aud .it{background:#1d4f8f;padding:0}
+.aud canvas{position:absolute;inset:0;width:100%;height:100%}
+.aud .it .lb{position:absolute;left:5px;top:2px;font-size:10px;text-shadow:0 1px 2px #000}
+.beat{position:absolute;bottom:0;width:2px;height:8px;background:var(--gold2)}
+.rowlbl{position:absolute;left:4px;font-size:11px;color:rgba(255,255,255,.25);pointer-events:none}
+#bar{flex:none;display:flex;gap:2px;overflow-x:auto;padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:#120d33;scrollbar-width:none}
+#bar::-webkit-scrollbar{display:none}
+#bar button{flex:none;min-width:62px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 4px;border-radius:10px;font-size:11px;color:var(--muted)}
+#bar button i{font-style:normal;font-size:21px;line-height:1}
+#bar button:active{background:var(--card)}
+#bar .sep{flex:none;width:1px;background:var(--line);margin:6px 4px}
+#panel{flex:none;max-height:46vh;display:flex;flex-direction:column;border-top:1px solid var(--line);background:#120d33}
+.phead{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.06)}
+.phead b{flex:1;color:var(--gold2);font-size:14px}
+.phead .ok{width:36px;height:32px;border-radius:9px;background:var(--gold);color:#24104f;font-weight:900}
+#pBody{overflow-y:auto;padding:10px 12px calc(12px + env(safe-area-inset-bottom))}
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 11px;font-size:13px;white-space:nowrap}
+.chip.on{background:var(--gold);color:#24104f;border-color:transparent;font-weight:700}
+.fchip{flex:none;width:68px;text-align:center;font-size:11px}
+.fchip .sw{display:block;width:68px;height:50px;border-radius:10px;margin-bottom:4px;border:2px solid transparent;background-size:cover;background-position:center}
+.fchip.on .sw{border-color:var(--gold)}.fchip.on{color:var(--gold2);font-weight:700}
+.sl{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px}
+.sl span{width:86px;color:var(--muted);flex:none}
+.sl input[type=range]{flex:1;accent-color:var(--gold);height:28px}
+.sl output{width:44px;text-align:right;font-variant-numeric:tabular-nums}
+.tog{display:flex;flex-wrap:wrap;gap:7px;margin:6px 0}
+.sw2{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.4);flex:none}
+.sw2.on{outline:3px solid var(--gold);outline-offset:1px}
+input[type=color]{width:34px;height:32px;border:0;background:none;padding:0}
+textarea{width:100%;min-height:62px;border-radius:10px;border:1px solid var(--line);background:#0b0822;color:var(--text);padding:9px;font-size:15px;font-family:inherit;user-select:text;-webkit-user-select:text}
+.seg{display:flex;gap:6px;margin-bottom:8px}.seg .chip{flex:1;text-align:center}
+.note{font-size:12px;color:var(--muted);margin:6px 0}
+#busy,#modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(5,3,20,.82);padding:20px}
+.box{width:min(440px,100%);background:#1a1346;border:1px solid var(--line);border-radius:18px;padding:18px;max-height:92vh;overflow:auto}
+.box h3{color:var(--gold2);margin-bottom:12px}
+.spin{width:44px;height:44px;border-radius:50%;border:4px solid rgba(255,255,255,.15);border-top-color:var(--gold);animation:sp 1s linear infinite;margin:0 auto 12px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.prog{height:8px;border-radius:9px;background:rgba(255,255,255,.1);overflow:hidden;margin:12px 0}.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.big{display:block;width:100%;padding:13px;border-radius:12px;font-weight:800;font-size:15px;margin-top:10px;text-align:center}
+.ghost{border:1px solid var(--line);background:var(--card)}
+.box video{width:100%;max-height:46vh;border-radius:10px;background:#000}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);background:rgba(20,14,55,.96);border:1px solid var(--line);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%)}
+#recDot{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#d62f45;color:#fff;padding:7px 14px;border-radius:999px;font-size:13px;z-index:40}
+@media (min-width:900px){#tl{height:226px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <button class="ib" id="backBtn" aria-label="Back">←</button>
+    <b data-i18n="title">SP01 Pro Editor</b>
+    <button class="ib" id="undoBtn" aria-label="Undo">↶</button>
+    <button class="ib" id="redoBtn" aria-label="Redo">↷</button>
+    <button class="pill" id="langBtn">English</button>
+    <button class="gold" id="expBtn" data-i18n="export">Export</button>
+  </header>
+  <section id="pv">
+    <div id="stageWrap"><canvas id="stage"></canvas><div id="selBox" class="hidden"></div></div>
+    <div id="empty"><div data-i18n="empty"></div><button class="gold" id="emptyAdd" data-i18n="addFirst">+ Add video / photo</button></div>
+    <div id="pickHint" class="hidden"></div>
+  </section>
+  <div id="transport"><span id="tNow">0:00.0</span>&nbsp;/&nbsp;<span id="tTot">0:00.0</span><span class="sp"></span>
+    <button id="playBtn" aria-label="Play">▶</button><span class="sp"></span>
+    <button class="ib" id="zoomOut" aria-label="Zoom out">−</button><button class="ib" id="zoomIn" aria-label="Zoom in">+</button></div>
+  <section id="tl"><div id="tlScroll"><div id="tlInner"></div></div><div id="playhead"></div></section>
+  <section id="panel" class="hidden"><div class="phead"><b id="pTitle"></b><button class="ok" id="pDone">✓</button></div><div id="pBody"></div></section>
+  <nav id="bar"></nav>
+</div>
+<div id="busy" class="hidden"><div class="box" style="text-align:center"><div class="spin"></div><div id="busyTxt"></div></div></div>
+<div id="modal" class="hidden"><div class="box" id="mBox"></div></div>
+<div id="recDot" class="hidden"></div>
+<div id="toast"></div>
+<input type="file" id="inMedia" accept="video/*,image/*" multiple hidden>
+<input type="file" id="inOverlay" accept="video/*,image/*" hidden>
+<input type="file" id="inAudio" accept="audio/*,video/*" hidden>
+<script src="pro-core.js"></script>
+<script src="pro-gl.js"></script>
+<script src="pro-export.js"></script>
+<script src="pro-ui.js"></script>
+</body>
+</html>

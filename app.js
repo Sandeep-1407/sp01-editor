@@ -7,7 +7,7 @@ const I18N = {
     heroTitle: 'Edit videos,<br><span>without uploading</span>',
     heroSub: 'Your video never leaves your device. Fast, private, simple.',
     b1: '✂ Trim', b2: '🗑 Cut', b3: '🔇 Mute', b4: '📦 Compress', b5: '💬 WhatsApp', b6: '📱 Reel 9:16',
-    pick: 'Choose a video', drop: 'Or drag & drop a video here (PC)',
+    pick: 'Choose a video', proBtn: 'Pro Editor – Filters, Text, Effects, Chroma key, Music', drop: 'Or drag & drop a video here (PC)',
     t1h: 'Mobile', t1: 'Gallery → open video → Share → SP01',
     t2h: 'PC', t2: 'Right-click the video → Open with → SP01 (after installing)',
     trim: 'Trim', cut: 'Cut', mute: 'Mute', compress: 'Compress', whatsapp: 'WhatsApp', reel: 'Reel 9:16',
@@ -41,7 +41,7 @@ const I18N = {
     heroTitle: 'वीडियो एडिट करें,<br><span>बिना अपलोड किए</span>',
     heroSub: 'आपकी वीडियो आपके फ़ोन/PC से बाहर नहीं जाती। तेज़, सुरक्षित, आसान।',
     b1: '✂ ट्रिम', b2: '🗑 कट', b3: '🔇 म्यूट', b4: '📦 छोटा करें', b5: '💬 WhatsApp', b6: '📱 Reel 9:16',
-    pick: 'वीडियो चुनें', drop: 'या वीडियो यहाँ खींचकर छोड़ें (PC)',
+    pick: 'वीडियो चुनें', proBtn: 'प्रो एडिटर – फ़िल्टर, टेक्स्ट, इफ़ेक्ट, क्रोमा की, म्यूज़िक', drop: 'या वीडियो यहाँ खींचकर छोड़ें (PC)',
     t1h: 'मोबाइल', t1: 'गैलरी → वीडियो खोलें → Share → SP01',
     t2h: 'PC', t2: 'वीडियो पर राइट-क्लिक → Open with → SP01 (इंस्टॉल के बाद)',
     trim: 'ट्रिम', cut: 'कट', mute: 'म्यूट', compress: 'छोटा करें', whatsapp: 'WhatsApp', reel: 'Reel 9:16',
@@ -406,14 +406,29 @@ function showResult(oldSize = current.size) {
   $('#outPlayer').src = outURL;
   $('#sizeOld').textContent = fmtSize(oldSize);
   $('#sizeNew').textContent = fmtSize(outBlob.size);
-  $('#shareBtn').classList.toggle('hidden', !navigator.canShare);
+  $('#shareBtn').classList.toggle('hidden', !navigator.canShare && !window.Capacitor?.isNativePlatform?.());
   show('result');
 }
-$('#saveBtn').onclick = () => {
+/* Android app: write the result to the cache, then copy it into the Gallery / open the share sheet */
+const NATIVE_APP = !!window.Capacitor?.isNativePlatform?.();
+async function nativeFile(blob, name) {
+  const FS = window.Capacitor.Plugins.Filesystem; const CH = 3 * 1024 * 1024;
+  const b64 = (b) => new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(String(fr.result).split(',')[1]); fr.readAsDataURL(b); });
+  await FS.writeFile({ path: name, data: await b64(blob.slice(0, CH)), directory: 'CACHE' });
+  for (let i = CH; i < blob.size; i += CH) await FS.appendFile({ path: name, data: await b64(blob.slice(i, i + CH)), directory: 'CACHE' });
+  return (await FS.getUri({ path: name, directory: 'CACHE' })).uri;
+}
+$('#saveBtn').onclick = async () => {
+  if (NATIVE_APP) {
+    try { const uri = await nativeFile(outBlob, outName); await window.Capacitor.Plugins.MediaSaver.saveVideo({ path: uri, name: outName }); toast(lang === 'hi' ? 'गैलरी में सेव हो गया (Movies/SP01)' : 'Saved to Gallery (Movies/SP01)'); }
+    catch (e) { toast('✗ ' + (e?.message || e)); }
+    return;
+  }
   const a = document.createElement('a'); a.href = outURL; a.download = outName;
   document.body.appendChild(a); a.click(); a.remove(); toast(t('saved'));
 };
 $('#shareBtn').onclick = async () => {
+  if (NATIVE_APP) { try { const uri = await nativeFile(outBlob, outName); await window.Capacitor.Plugins.Share.share({ title: outName, files: [uri] }); } catch {} return; }
   const f = new File([outBlob], outName, { type: outBlob.type });
   if (navigator.canShare && navigator.canShare({ files: [f] })) {
     try { await navigator.share({ files: [f], title: outName }); } catch {}
@@ -588,6 +603,6 @@ let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; $('#installBtn').classList.remove('hidden'); });
 $('#installBtn').onclick = async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('#installBtn').classList.add('hidden'); };
 window.addEventListener('appinstalled', () => $('#installBtn').classList.add('hidden'));
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+if ('serviceWorker' in navigator && !window.Capacitor?.isNativePlatform?.()) navigator.serviceWorker.register('./sw.js').catch(() => {});
 
 applyI18n();

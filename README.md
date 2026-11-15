@@ -1,10 +1,34 @@
 # SP01 – Video Editor (Prototype, Phase 1)
 
 Video phone/PC ke andar hi edit hoti hai, kahin upload nahi hoti.
-Tools: Trim, Cut, Mute, Compress, WhatsApp, Reel 9:16, Merge (videos jodna) · Hindi + English
+Tools: Trim, Cut, Mute, Compress, WhatsApp, Reel 9:16, Merge (videos jodna) · **✨ Pro Editor** · Hindi + English
 
 ## Live link
 https://sandeep-1407.github.io/sp01-editor/
+
+## ✨ Pro Editor (pro.html)
+Home screen par **Pro Editor** button. VN / CapCut jaisa timeline editor:
+- 🎨 **Filters** – 20 filters (Cinematic, Vintage, B&W, Golden, Teal & Orange…) + strength slider
+- ☀️ **Lighting** – brightness, contrast, saturation, exposure, temperature, tint, highlights, shadows, vignette, sharpen, fade, grain, hue
+- 🔤 **Text** – Hindi + English fonts, rang, outline, shadow, box, preview par khinch kar jagah badlein, do ungli se chhota/bada/ghumayein
+- 💫 **Animation** – in/out: fade, slide, zoom, pop, spin, blur, typewriter · **Transitions** – fade, dip black, flash white, slide, zoom, wipe, spin, blur
+- 🟩 **Chroma key** – green/blue screen hatana, 💧 rang chunna, similarity / smoothness / spill
+- 🎵 **Audio** – gaana/voice jodna, trim, volume, fade in/out, 🎤 voice-over, 🥁 beat markers
+- ✨ **Effects** – shake, zoom pulse, glitch, RGB split, blur, VHS, light leak, flash, old film, mirror, pixelate, neon edge
+- ⏩ speed 0.25x–4x, 🔁 reverse, ❄️ freeze frame, split, duplicate, undo/redo, aspect ratio 9:16 / 16:9 / 1:1 / 4:5…, blur background
+- 📤 **Export** 720p / 1080p / 2K, 24/30/60 fps (WebCodecs, phone ka hardware encoder). Chrome 100+ chahiye.
+
+| File | Kaam |
+|---|---|
+| pro.html | Pro Editor screen |
+| pro-core.js | Project, media, filters/animation list, undo |
+| pro-gl.js | WebGL preview: filters, lighting, chroma key, text, transitions, effects |
+| pro-export.js | Awaaz mix + MP4 export |
+| pro-ui.js | Timeline, buttons, panels, gestures |
+
+## Android app (APK)
+https://github.com/Sandeep-1407/sp01-editor/releases/latest/download/SP01-Editor.apk
+GitHub Actions (`.github/workflows/android.yml`) se apne aap banta hai (Capacitor 7 + `MediaSaverPlugin.java`). Export seedha Gallery → Movies/SP01 mein save hota hai.
 
 ## Files
 | File | Kaam |
