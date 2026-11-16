@@ -1,7 +1,7 @@
 // SP01 service worker: offline cache + Android "Share to SP01" receiver
-const VERSION = 'sp01-v5';
+const VERSION = 'sp01-v6';
 const SHELL = [
-  './', './index.html', './app.js', './manifest.webmanifest',
+  './', './index.html', './updater.js', './app.js', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './maskable-512.png', './favicon.png',
   './pro.html', './pro-core.js', './pro-gl.js', './pro-export.js', './pro-ui.js',
   './ffmpeg.js', './classes.js', './const.js', './errors.js', './types.js', './utils.js', './worker.js'
